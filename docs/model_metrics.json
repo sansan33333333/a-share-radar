@@ -1,0 +1,52 @@
+{
+  "note": "横截面排序模型的走步验证结果，取自加入板块共振特征（ind_lu_n / ind_up5_n）后的最近一次完整训练，共 34 个特征。",
+  "horizon_days": 3,
+  "method": "XGBoost 横截面收益分位 + 三重障碍标签 + 走步验证",
+  "train": {
+    "start": "2024-12-25",
+    "end": "2026-08-17",
+    "rows": 321392
+  },
+  "valid": {
+    "start": "2026-08-21",
+    "end": "2026-11-20",
+    "rows": 52434,
+    "days": 60
+  },
+  "rank_ic": 0.1066,
+  "rank_icir": 0.591,
+  "top_decile": {
+    "ret_3d": -0.13,
+    "excess_3d": 1.07,
+    "hit_rate": 44.3
+  },
+  "top8": {
+    "ret_3d": 2.41,
+    "excess_3d": 3.61,
+    "hit_rate": 52.3
+  },
+  "top3": {
+    "ret_3d": 4.52,
+    "hit_rate": 58.3
+  },
+  "direction_accuracy": {
+    "up": 57.9,
+    "up_baseline": 49.3,
+    "triple_barrier": 59.9,
+    "triple_barrier_baseline": 47.8
+  },
+  "live_small_sample": {
+    "n": 12,
+    "rank_ic": 0.0313,
+    "hit_rate": 47.2,
+    "avg_ret_3d": 3.21,
+    "note": "样本仅 12 个预测日，统计意义很弱，仅作为在线监控指标展示"
+  },
+  "caveats": [
+    "验证期与训练期不重叠，但特征选择使用了同一份数据",
+    "验证期（2026-08 ~ 2026-11）整体下跌，Top10% 绝对收益为负，能看的只有超额",
+    "未模拟停牌、涨跌停无法成交、滑点与 T+1 约束",
+    "收益单位为百分点，未扣除交易成本",
+    "在线小样本 RankIC 仅 0.03，说明模型优势并不稳定"
+  ]
+}
