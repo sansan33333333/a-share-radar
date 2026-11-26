@@ -15,6 +15,22 @@ LOG_PATH = DATA_DIR / "pipeline.log"
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+# 演示模式：只用仓库里预置的 demo_data/ 快照，不抓实时数据、不写回。
+# 必须在导入 single/store 等模块之前调用，它们会在导入时绑定路径。
+DEMO_DATA_DIR = BASE_DIR / "demo_data"
+DEMO_MODE = False
+
+
+def use_demo_dir():
+    """把数据目录切到 demo_data/，让看板在完全离线的情况下也能跑起来。"""
+    global DATA_DIR, DB_PATH, LATEST_PATH, LOG_PATH, DEMO_MODE
+    DATA_DIR = DEMO_DATA_DIR
+    DB_PATH = DATA_DIR / "astock.db"
+    LATEST_PATH = DATA_DIR / "latest.json"
+    LOG_PATH = DATA_DIR / "demo.log"
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    DEMO_MODE = True
+
 # ---- 模型（走本机 opencode-cli，复用当前登录态）----
 MODEL = "opencode/deepseek-v4.1-flash-free"
 
@@ -33,8 +49,9 @@ AI_TIMEOUT = 240
 AI_ENABLED = True
 
 # ---- 服务 ----
-HOST = "127.0.0.1"
-PORT = 8765
+# 部署到容器/云主机时用 ASTOCK_HOST=0.0.0.0 暴露到外部，ASTOCK_PORT 改端口
+HOST = os.environ.get("ASTOCK_HOST", "127.0.0.1")
+PORT = int(os.environ.get("ASTOCK_PORT", "8765"))
 
 # ---- 选股参数（全A短线 1-3 日）----
 MIN_PRICE = 3.0

@@ -908,9 +908,16 @@ async function loadStatus(){
     const r = await fetch("/api/status?t="+Date.now());
     const s = await r.json();
     const map = {open:"交易中",lunch:"午间休市",closed:"已收盘",weekend:"周末休市",auction:"集合竞价"};
-    $("#sessionText").textContent = map[s.session] || "—";
-    $("#liveDot").classList.toggle("on", s.session==="open" || s.running);
-    $("#nextRun").textContent = s.running ? "分析中…" : ("下一轮 " + nextSlot());
+    $("#sessionText").textContent = s.demo ? "演示模式" : (map[s.session] || "—");
+    $("#liveDot").classList.toggle("on", !s.demo && (s.session==="open" || s.running));
+    $("#nextRun").textContent = s.demo ? "预置快照 · 不联网" : (s.running ? "分析中…" : ("下一轮 " + nextSlot()));
+    if(s.demo && !document.getElementById("demoBar")){
+      const bar = document.createElement("div");
+      bar.id = "demoBar";
+      bar.textContent = "演示模式：本页读取仓库内预置的历史快照，不联网、不抓实时行情。要看真实数据请在本地执行 python pipeline.py --force";
+      bar.style.cssText = "position:sticky;top:0;z-index:999;background:#BA7517;color:#fff;font-size:13px;line-height:1.5;padding:9px 16px;text-align:center;";
+      document.body.prepend(bar);
+    }
   }catch(e){}
 }
 

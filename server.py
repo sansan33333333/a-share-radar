@@ -11,6 +11,11 @@ from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 
 import config
+
+# 演示模式必须在导入 single / store 之前切换数据目录（它们在导入时绑定路径）
+if "--demo" in sys.argv:
+    config.use_demo_dir()
+
 import ai
 import datasource as ds
 import single
@@ -59,8 +64,13 @@ def api_search():
         return jsonify({"ok": False, "error": str(e)[:160], "items": []}), 500
 
 
+DEMO_NOTICE = "演示模式：该功能需要实时抓取行情，已关闭。想跑真实数据请在本地执行 python pipeline.py --force"
+
+
 @app.route("/api/analyze", methods=["POST"])
 def api_analyze():
+    if config.DEMO_MODE:
+        return jsonify({"ok": False, "demo": True, "error": DEMO_NOTICE}), 403
     data = request.get_json(silent=True) or {}
     try:
         return jsonify(single.analyze(data.get("code"), data.get("buy_price")))
@@ -70,6 +80,8 @@ def api_analyze():
 
 @app.route("/api/comment", methods=["POST"])
 def api_comment():
+    if config.DEMO_MODE:
+        return jsonify({"ok": False, "demo": True, "error": DEMO_NOTICE}), 403
     data = request.get_json(silent=True) or {}
     try:
         result = single.analyze(data.get("code"), data.get("buy_price"))
@@ -92,11 +104,14 @@ def api_status():
         "session": ds.session_state(),
         "model": config.MODEL,
         "port": config.PORT,
+        "demo": config.DEMO_MODE,
     })
 
 
 @app.route("/api/refresh", methods=["POST"])
 def api_refresh():
+    if config.DEMO_MODE:
+        return jsonify({"ok": False, "demo": True, "message": DEMO_NOTICE}), 403
     if is_running():
         return jsonify({"ok": False, "message": "已有任务在运行"}), 429
     flags = 0
@@ -119,6 +134,8 @@ def api_health():
 
 def main():
     config.setup_stdout()
+    if config.DEMO_MODE:
+        print("演示模式（预置快照，不联网）数据目录: %s" % config.DATA_DIR, flush=True)
     print("A股短线雷达: http://%s:%d" % (config.HOST, config.PORT), flush=True)
     app.run(host=config.HOST, port=config.PORT, debug=False, threaded=True)
 

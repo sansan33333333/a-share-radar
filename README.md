@@ -40,16 +40,27 @@
 
 ## 快速开始
 
+### ① 看演示（30 秒，不用抓数据、不需要联网）
+
 ```bash
 pip install -r requirements.txt
+python server.py --demo      # 打开 http://127.0.0.1:8765
+```
 
-python pipeline.py --force   # 生成首份报告，首次约 3–5 分钟（拉全市场快照 + 日K）
+`demo_data/` 里是 **2026-11-25 盘后的真实快照**（0.8MB），所以不跑流水线也能看到完整界面：全部候选、评分拆解、K 线小图、板块强弱、信号跟踪、历史报告。页面顶部会有一条橙色横幅标明"演示模式"，实时抓取与个股诊断在这个模式下关闭。
+
+### ② 跑真实数据
+
+```bash
+python pipeline.py --force   # 首次约 3–5 分钟：拉全市场快照 + 1000+ 只日K
 python server.py             # 打开 http://127.0.0.1:8765
 ```
 
 Windows 下也可以直接双击 `立即分析.bat` / `启动看板.bat`；想让它每 30 分钟自动跑，用 `setup_task.ps1` 注册计划任务。
 
-Python 3.10+。模型层需要 `xgboost`；缺依赖时自动降级为规则分，不会崩。
+Python 3.10+。模型层需要 `xgboost`；缺依赖时自动降级为规则分，不会崩。部署到容器/云主机时用 `ASTOCK_HOST=0.0.0.0` 暴露到外部、`ASTOCK_PORT` 改端口。
+
+重新生成演示快照：`python scripts/build_demo.py`（从本地 `data/` 导出最近 12 次报告）。
 
 ## 技术栈
 
@@ -72,6 +83,8 @@ signal_guard.py    信号防重复、试探仓约束
 ai.py              本地大模型研判（复用本机 CLI 登录态，不落任何密钥）
 server.py          Flask 看板服务
 web/index.html     单页看板（原生 JS，无构建步骤）
+demo_data/         演示快照（0.8MB）：一次真实分析结果 + 最近 12 次历史报告
+scripts/           build_demo.py：从 data/ 导出演示快照
 research/          研究脚本：形态层区分度的历史验证
 test_*.py          27 个离线单测
 ```
